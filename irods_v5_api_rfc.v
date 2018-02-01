@@ -4,11 +4,7 @@
 
 ** System state vs observed state
 
-Some times iRODS needs to perform multiple actions that modifies it state in a transactional fashion. 
-For example, uploading a file and register in iCAT. The state of the system is modified in each action, 
-but only the completed state is observed by client. When the transaction is partially done, 
-the system state encompasses both the observed state and unobserved state. In the Constraints section, 
-we describe each constraint either on the system state or the observed state.
+Some times iRODS needs to perform multiple actions that modifies it state in a transactional fashion. For example, uploading a file and register in iCAT. The state of the system is modified in each action, but only the completed state is observed by client. When the transaction is partially done, the system state encompasses both the observed state and unobserved state. In the Constraints section, we describe each constraint either on the system state or the observed state.
 
 *)
 
@@ -17,7 +13,7 @@ Parameter observed_state : Set.
 
 (**
 
-** Local state vs global state
+** Local State vs Global State
 For simplicity, we assume that at each moment, a global state encompassing the entire iRODS grid can be defined. In future iterations, it would be interesting to explore models where local states are defined but not global state.
 
 ** Identity of an Object
@@ -39,31 +35,22 @@ whereas
 
 [path_of_data_object(b, a)] 
 
-says that [b] is the path of a.
+says that [b] is the path of [a].
 
-* iRODS data model
+* iRODS Data Model
 
 ** Sets
 
 Sets defines concepts iRODS is built on.
 *)
 
-Parameter data_object : Set.
-Parameter collection : Set.
-Parameter resource : Set.
-Parameter replica : Set.
-Parameter user : Set.
-Parameter group : Set.
-Parameter zone : Set.
-Parameter access : Set.
-Parameter metadata : Set.
-Parameter rule : Set.
-Parameter microservice : Set.
-Parameter PEP : Set.
-Parameter path : Set.
-Parameter physical_path : Set.
+
+
 Parameter id: Set.
 Parameter name: Set.
+Parameter path : Set.
+Parameter physical_path : Set.
+Parameter str : Set.
 
 Parameter data_object_descriptor : Set.
 Parameter offset : Set.
@@ -73,6 +60,7 @@ Parameter chksum : Set.
 Parameter error : Set.
 Parameter connection : Set.
 Parameter replica_content : Set.
+Parameter access : Set.
 
 Parameter iCAT : Set.
 Parameter host : Set.
@@ -85,6 +73,58 @@ Parameter aux : Set -> Set.
 
 Parameter empty_content : replica_content.
 Parameter own : access.
+
+(** Objects has identifier *)
+
+Inductive objects :=
+  | data_object_object : objects
+  | collection_object : objects
+  | resource_object : objects
+  | replica_object : objects
+  | user_object : objects
+  | group_object : objects
+  | zone_object : objects
+  | metadata_object : objects
+  | rule_object : objects
+  | microservice_object : objects
+  | PEP_object : objects.
+
+
+Definition identifier (o : objects) : Set :=
+  match o with
+    | data_object_object => id
+    | collection_object => id
+    | resource_object => id
+(** replica is identified by a resource and a path on that resource *)
+
+    | replica_object => id * physical_path
+(** user or group is identified by a zone and a user name in that zone *)
+
+    | user_object => name * name
+    | group_object => name * name
+    | zone_object => name
+(** metadata is identified by AVU *)
+
+    | metadata_object => str * str * str
+    | rule_object => name
+    | microservice_object => name
+    | PEP_object => name
+end.
+
+Parameter el : objects -> Set.
+
+Definition data_object := el data_object_object.
+Definition collection := el collection_object.
+Definition resource := el resource_object.
+Definition replica := el replica_object.
+Definition user := el user_object.
+Definition group := el group_object.
+Definition zone := el zone_object.
+Definition metadata := el metadata_object.
+Definition rule := el rule_object.
+Definition microservice := el microservice_object.
+Definition PEP := el PEP_object.
+
 
 (** ** Relations
 *)
@@ -142,7 +182,7 @@ Parameter apply_action : forall {a : Set}, action a -> applied_action a.
 
 (**
 
-It produces a result "a", can modify the system_state, and can throw errors. 
+It produces a result [a], can modify the system_state, and can throw errors. 
 
 *** List of Actions *)
 Parameter set : relation -> action unit.
