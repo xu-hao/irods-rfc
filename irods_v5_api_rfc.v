@@ -44,7 +44,8 @@ says that [b] is the path of [a].
 Sets defines concepts iRODS is built on.
 *)
 
-
+(** *** Immutable Sets *)
+(** Some sets contain immutable objects. A mutable object has an identifier. *)
 
 Parameter id: Set.
 Parameter name: Set.
@@ -74,7 +75,8 @@ Parameter aux : Set -> Set.
 Parameter empty_content : replica_content.
 Parameter own : access.
 
-(** Objects has identifier *)
+(** *** Mutable Sets *)
+(** Some sets contain mutable objects. A mutable object has an identifier. *)
 
 Inductive objects :=
   | data_object_object : objects
@@ -110,6 +112,8 @@ Definition identifier (o : objects) : Set :=
     | microservice_object => name
     | PEP_object => name
 end.
+
+(** [el] returns the set of an object. *)
 
 Parameter el : objects -> Set.
 
