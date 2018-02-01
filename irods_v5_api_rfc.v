@@ -45,13 +45,22 @@ Sets defines concepts iRODS is built on.
 *)
 
 (** *** Immutable Sets *)
-(** Some sets contain immutable objects. The identifier of an immutable object is its content. *)
+(** Some sets contain immutable objects. *)
 
-Parameter id: Set.
-Parameter name: Set.
+
+Parameter immutable_objects : Set.
+Parameter id : Set.
+Parameter resc_name : Set.
+Parameter data_object_name : Set.
+Parameter file_name : Set.
+Parameter zone_name : Set.
+Parameter user_name : Set.
+Parameter group_name : Set.
+Parameter rule_name : Set.
+Parameter microservice_name : Set.
+Parameter API_name : Set.
 Parameter path : Set.
 Parameter physical_path : Set.
-Parameter str : Set.
 Parameter offset : Set.
 Parameter length : Set.
 Parameter buffer : Set.
@@ -63,72 +72,86 @@ Parameter iCAT : Set.
 Parameter host : Set.
 Parameter port : Set.
 Parameter config : Set.
-Parameter local_id : Set.
+Parameter AVU : Set.
+(** [local_id] is an id that cannot be interpreted by an hosts other than the localhost. This could be for example a pointer. *)
 
+Parameter local_id : Set.
 Parameter empty_content : replica_content.
 Parameter own : access.
 
 (** *** Mutable Sets *)
-(** Some sets contain mutable objects. A mutable object has an identifier. *)
+(** Some sets contain mutable objects.  *)
 
-Inductive objects :=
-  | data_object_object : objects
-  | collection_object : objects
-  | resource_object : objects
-  | replica_object : objects
-  | user_object : objects
-  | group_object : objects
-  | zone_object : objects
-  | metadata_object : objects
-  | rule_object : objects
-  | microservice_object : objects
-  | PEP_object : objects
-  | API_object : objects
-  | connection_object : objects
-  | data_object_descriptor_object : objects.
+Inductive mutable_objects :=
+  | data_object_object : mutable_objects
+  | collection_object : mutable_objects
+  | resource_object : mutable_objects
+  | replica_object : mutable_objects
+  | user_object : mutable_objects
+  | group_object : mutable_objects
+  | zone_object : mutable_objects
+  | metadata_object : mutable_objects
+  | rule_object : mutable_objects
+  | microservice_object : mutable_objects
+  | PEP_object : mutable_objects
+  | API_object : mutable_objects
+  | connection_object : mutable_objects
+  | data_object_descriptor_object : mutable_objects.
 
-Definition identifier (o : objects) : Set :=
-  match o with
-    | data_object_object => id
-    | collection_object => id
-    | resource_object => id
-(** replica is identified by a resource and a path on that resource *)
 
-    | replica_object => id * physical_path
-(** user or group is identified by a zone and a user name in that zone *)
-
-    | user_object => name * name
-    | group_object => name * name
-    | zone_object => name
-(** metadata is identified by AVU *)
-
-    | metadata_object => str * str * str
-    | rule_object => name
-    | microservice_object => name
-    | PEP_object => name
-    | API_object => id
-    | connection_object => local_id
-    | data_object_descriptor_object => local_id
-end.
+Definition objects : Set := immutable_objects + mutable_objects.
 
 (** [el] returns the set of an object. *)
 
 Parameter el : objects -> Set.
 
-Definition data_object := el data_object_object.
-Definition collection := el collection_object.
-Definition resource := el resource_object.
-Definition replica := el replica_object.
-Definition user := el user_object.
-Definition group := el group_object.
-Definition zone := el zone_object.
-Definition metadata := el metadata_object.
-Definition rule := el rule_object.
-Definition microservice := el microservice_object.
-Definition PEP := el PEP_object.
-Definition API := el API_object.
-Definition connection := el connection_object.
-Definition data_object_descriptor := el data_object_descriptor_object.
+(** [identifier] returns the identifer type of an object. The identifier of an immutable object is its content. A mutable object has an identifier. *)
+
+Parameter identifier : objects -> Set.
+
+Definition identifier_impl (o : objects) : Set :=
+  match o with
+  | inl io => el o
+  | inr mo =>
+    match mo with
+      | data_object_object => zone_name * id
+      | collection_object => zone_name * id
+      | resource_object => zone_name * id
+  (** replica is identified by a zone, a resource, and a path on that resource *)
+
+      | replica_object => zone_name * id * physical_path
+  (** user or group is identified by a zone and a user name in that zone *)
+
+      | user_object => zone_name * user_name
+      | group_object => zone_name * group_name
+      | zone_object => zone_name
+  (** metadata is identified by AVU *)
+
+      | metadata_object => AVU
+      | rule_object => host * rule_name
+      | microservice_object => host * microservice_name
+      | PEP_object => host * rule_name
+      | API_object => host * id
+      | connection_object => host * local_id
+      | data_object_descriptor_object => host * local_id
+  end
+end.
+
+
+Definition data_object := el (inr data_object_object).
+Definition collection := el (inr collection_object).
+Definition resource := el (inr resource_object).
+Definition replica := el (inr replica_object).
+Definition user := el (inr user_object).
+Definition group := el (inr group_object).
+Definition zone := el (inr zone_object).
+Definition metadata := el (inr metadata_object).
+Definition rule := el (inr rule_object).
+Definition microservice := el (inr microservice_object).
+Definition PEP := el (inr PEP_object).
+Definition API := el (inr API_object).
+Definition connection := el (inr connection_object).
+Definition data_object_descriptor := el (inr data_object_descriptor_object).
 
 (** ** Relations
 *)
