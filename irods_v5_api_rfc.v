@@ -183,7 +183,7 @@ Parameter aux : Set -> Set.
 
 (** ** Actions
 
-Actions have the following format *)
+Actions can be applied. An applied action has the following type *)
 
 Definition applied_action a := system_state -> (a + error) * system_state.
 
@@ -191,7 +191,7 @@ Parameter apply_action : forall {a : Set}, action a -> applied_action a.
 
 (**
 
-It produces a result [a], can modify the system_state, and can throw errors. 
+An applied action produces a result [a], can modify the system_state, and can throw an error. 
 
 *** List of Actions *)
 Parameter set : relation -> action unit.
@@ -222,8 +222,17 @@ Parameter data_object_put : action unit.
 
 (**
  ** Queries
- *** List of Queries *)
+Queries can be applied. An applied query has the following type
+*)
+
 Definition applied_query a := system_state -> a + error.
+
+(**
+An applied query produces a result [a] which may depend on the system state, does not modify the system_state, and can throw an error.
+
+*** List of Queries
+ *)
+
 Parameter path_to_data_object : path -> query data_object.
 Parameter path_to_collection : path -> query collection.
 Parameter connection_user : connection -> query user.
@@ -231,12 +240,19 @@ Parameter lift_query : forall {a : Set}, query a -> action a.
 
 (**
  ** Auxiliary Function 
- *** List of Auxiliary Function *)
+
+Auxiliary functions can be applied. An applied auxiliary function has the following type
+*)
 Definition applied_aux (a : Set) : Set := a + error.
+(**
+An applied auxiliary function produces a result [a] which does not depend on the system state, does not modify the system_state, and can throw an error.
+
+*** List of auxiliary functions
+*)
 Parameter parent_path : path -> aux path.
 Parameter lift_aux : forall {a : Set}, aux a -> action a.
 
-(** ** Sequences 
+(** ** DAGs
 Actions are DAG nodes.
 *)
 
