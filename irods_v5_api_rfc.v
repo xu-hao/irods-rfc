@@ -45,7 +45,7 @@ Sets defines concepts iRODS is built on.
 *)
 
 (** *** Immutable Sets *)
-(** Some sets contain immutable objects. The identifier of a mutable object is its content. *)
+(** Some sets contain immutable objects. The identifier of an immutable object is its content. *)
 
 Parameter id: Set.
 Parameter name: Set.
