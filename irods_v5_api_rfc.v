@@ -45,32 +45,25 @@ Sets defines concepts iRODS is built on.
 *)
 
 (** *** Immutable Sets *)
-(** Some sets contain immutable objects. A mutable object has an identifier. *)
+(** Some sets contain immutable objects. The identifier of a mutable object is its content. *)
 
 Parameter id: Set.
 Parameter name: Set.
 Parameter path : Set.
 Parameter physical_path : Set.
 Parameter str : Set.
-
-Parameter data_object_descriptor : Set.
 Parameter offset : Set.
 Parameter length : Set.
 Parameter buffer : Set.
 Parameter chksum : Set.
 Parameter error : Set.
-Parameter connection : Set.
 Parameter replica_content : Set.
 Parameter access : Set.
-
 Parameter iCAT : Set.
 Parameter host : Set.
 Parameter port : Set.
 Parameter config : Set.
-Parameter API : Set.
-Parameter action : Set -> Set.
-Parameter query : Set -> Set.
-Parameter aux : Set -> Set.
+Parameter local_id : Set.
 
 Parameter empty_content : replica_content.
 Parameter own : access.
@@ -89,8 +82,10 @@ Inductive objects :=
   | metadata_object : objects
   | rule_object : objects
   | microservice_object : objects
-  | PEP_object : objects.
-
+  | PEP_object : objects
+  | API_object : objects
+  | connection_object : objects
+  | data_object_descriptor_object : objects.
 
 Definition identifier (o : objects) : Set :=
   match o with
@@ -111,6 +106,9 @@ Definition identifier (o : objects) : Set :=
     | rule_object => name
     | microservice_object => name
     | PEP_object => name
+    | API_object => id
+    | connection_object => local_id
+    | data_object_descriptor_object => local_id
 end.
 
 (** [el] returns the set of an object. *)
@@ -128,7 +126,9 @@ Definition metadata := el metadata_object.
 Definition rule := el rule_object.
 Definition microservice := el microservice_object.
 Definition PEP := el PEP_object.
-
+Definition API := el API_object.
+Definition connection := el connection_object.
+Definition data_object_descriptor := el data_object_descriptor_object.
 
 (** ** Relations
 *)
@@ -175,6 +175,11 @@ exists (b : collection), is_observed (collection_child_of_collection a b) s \/ i
 
 (**
  * iRODS Interaction Model *)
+
+Parameter action : Set -> Set.
+Parameter query : Set -> Set.
+Parameter aux : Set -> Set.
+
 
 (** ** Actions
 
