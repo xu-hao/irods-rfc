@@ -1,4 +1,4 @@
-(* coqdoc --pdf irods_v5_api_rfc.v  -o irods_rfc.pdf --preamble "\usepackage{tikz}" *)
+(* coqdoc --pdf irods_v5_api_rfc.v  -o irods_v5_api_rfc.pdf --preamble "\usepackage{tikz}" *)
 
 (** * Introduction
 
