@@ -282,6 +282,7 @@ Complex actions can be composed as DAG of actions.
 
 Parameter pure : forall {a : Set}, a -> action a.
 Parameter bind : forall {a b : Set}, (a -> action b) -> action a -> action b.
+Parameter zero : forall {a : Set}, action a.
 Parameter plus : forall {a : Set}, action a -> action a -> action a.
 
 (**
