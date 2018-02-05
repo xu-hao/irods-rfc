@@ -16,6 +16,8 @@ Some times iRODS needs to perform multiple actions that modifies it state in a t
 Parameter system_state : Set.
 Parameter observed_state : Set.
 
+Parameter observe : system_state -> observed_state.
+
 (**
 
 ** Local State vs Global State
