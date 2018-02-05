@@ -16,8 +16,6 @@ Some times iRODS needs to perform multiple actions that modifies it state in a t
 Parameter system_state : Set.
 Parameter observed_state : Set.
 
-Parameter observe : system_state -> observed_state.
-
 (**
 
 ** Local State vs Global State
@@ -48,28 +46,41 @@ says that [b] is the path of [a].
 
 (**
 * iRODS Data Model
+iRODS data model defines the static aspect of iRODS.
 *)
 
 
 (** 
-** Sets
+** Types
 
-Sets defines concepts iRODS is built on.
+Types define concepts iRODS is built on. We define types that are inhabited by certain objects. For example, we define the type [data_object] as being inhabited by data objects.
+
+[objects] is the universe of all names of types. It is universe a la Tarski. For example, we may define the type name [data_object_object] as being the name of type [data_object].
 *)
 
 Parameter objects : Set.
 
-(** [el] returns the set of an object. *)
+(** [el] maps type names to types. *)
 
 Parameter el : objects -> Set.
 
-(** [identifier] returns the identifer type of an object. The identifier of an immutable object is its content. A mutable object has an identifier. *)
+(** We identify objects by their identifiers. [identifier] returns the identifer type of an object. *)
 
 Parameter identifier : objects -> Set.
 
+(** An object is either mutable or immutable. *)
+
+Parameter mutability : objects -> bool.
+
+(** The identifier of an immutable object is its content. *)
+
+Axiom identifier_of_immutable_object_is_content:
+forall (obj : objects), mutability obj = false -> identifier obj = el obj.
+
+(** A mutable object has an identifier that may be different from its content. *)
+
 (** 
-*** Immutable Objects
-Some sets contain immutable objects. 
+*** List of Immutable Types
 *)
 
 Parameter id : Set.
@@ -98,7 +109,7 @@ Parameter config : Set.
 Parameter AVU : Set.
 
 (** 
-*** Constants of immutable sets 
+*** Constants of immutable types 
 *)
 
 Parameter empty_content : replica_content.
@@ -106,8 +117,7 @@ Parameter null read write own : access.
 
 
 (** 
-*** Mutable Sets
-Some sets contain mutable objects. 
+*** List of Mutable Types
 *)
 
 Parameter data_object : Set.
@@ -127,9 +137,16 @@ Parameter data_object_descriptor : Set.
 
 (** 
 ** Relations
+
+Objects can form relations.
 *)
 
 Parameter relation : Set.
+
+(**
+Each relation can be queried in both system states and observed states
+*)
+
 Parameter is_system : relation -> system_state -> Prop.
 Parameter is_observed : relation -> observed_state -> Prop.
 
@@ -158,6 +175,7 @@ Parameter id_of_collection : id -> collection -> relation.
 
 (** 
 ** Constraints 
+The types and relations must conform to certain constraints.
 *)
 
 (** 
@@ -179,7 +197,9 @@ exists (b : collection), is_observed (collection_child_of_collection a b) s \/ i
 (**
 * iRODS Interaction Model
 
-There are three type of interactions: actions, queries, and auxiliary functions. 
+iRODS interaction model defines the dynamic aspect of iRODS.
+
+There are three type of interactions: actions, queries, and auxiliary functions.
 *)
 
 Parameter action : Set -> Set.
@@ -254,7 +274,9 @@ Parameter connection_user : connection -> query user.
 (** 
 ** Auxiliary Functions 
 
-Auxiliary functions lifted to an action. 
+Auxiliary functions are partial functions with well-defined errors on undefined values. Therefore, it is considered part of the interaction model.
+
+Auxiliary functions can be lifted to an action. 
 *)
 
 Parameter lift_aux : forall {a : Set}, aux a -> action a.
@@ -279,16 +301,16 @@ Parameter parent_path : path -> aux path.
 (** 
 ** DAGs of Actions
 
-Complex actions can be composed as DAG of actions.
+Complex actions can be composed as DAG of actions. The following combinators from "MonadPlus" give us all the ingredients we need to construct DAGs.
 *)
 
 Parameter pure : forall {a : Set}, a -> action a.
 Parameter bind : forall {a b : Set}, (a -> action b) -> action a -> action b.
-Parameter zero : forall {a : Set}, action a.
 Parameter plus : forall {a : Set}, action a -> action a -> action a.
 
 (**
 ** Constraints
+The interaction model needs to satisfy the follow constraints.
 *)
 
 Axiom id_of_data_object_immutability:
@@ -312,7 +334,7 @@ Parameter byte_array : Set.
 Parameter empty_byte_array : byte_array.
 End data_types.
 
-Module iRODS_model_impl (dt : data_types) <: iRODS_model.
+Module iRODS_data_impl (dt : data_types) <: iRODS_model.
 
 Import dt.
 
