@@ -310,7 +310,7 @@ Parameter byte_array : Set.
 Parameter empty_byte_array : byte_array.
 End data_types.
 
-Module iRODS_data_impl (dt : data_types) <: iRODS_model.
+Module iRODS_model_impl (dt : data_types) <: iRODS_model.
 
 Import dt.
 
