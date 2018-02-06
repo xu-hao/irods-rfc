@@ -391,7 +391,7 @@ Definition length := _length.
 Definition buffer := _buffer.
 Definition chksum := _chksum.
 Definition error := _error.
-Definition replica_content := _replica.
+Definition replica_content := _replica_content.
 Definition access := _access.
 Definition iCAT := _iCAT.
 Definition host := _host.
@@ -413,7 +413,17 @@ Definition API := _API.
 Definition connection := _collection.
 Definition data_object_descriptor := _data_object_descriptor.
 
-Inductive access_type := null | read | write | own.
+Inductive _access_type := 
+  | _null 
+  | _read 
+  | _write 
+  | _own.
+  
+Definition access_type := _access_type.
+Definition null := _null.
+Definition read := _read.
+Definition write := _write.
+Definition own := _own.
 
 Definition identifier_type (obj : objects) : Set :=
   match obj with
@@ -503,58 +513,120 @@ unfold identifier. auto.
 Qed.
 
 Inductive _relation : Set :=
-  | data_object_child_of_collection : el data_object -> el collection -> _relation
-  | collection_child_of_collection : el collection -> el collection -> _relation
-  | collection_root : el collection -> _relation
-  | replica_of : el replica -> el data_object -> _relation
-  | stored_at : el replica -> el resource -> _relation
-  | resource_child_of_resource : el resource -> el resource -> _relation
-  | resource_root : el resource -> _relation
-  | resource_local_to_zone : el resource -> el zone -> _relation
-  | replica_local_to_zone : el user -> el zone -> _relation
-  | user_has_access_to_data_object : el user -> el access -> el data_object -> _relation
-  | user_has_access_to_collection : el user -> el access -> el collection -> _relation
-  | data_object_has_owner: el data_object -> el user -> _relation
-  | path_of_data_object : el path -> el data_object -> _relation
-  | id_of_data_object : el id -> el data_object -> _relation
-  | owner_of_data_object : el user -> el data_object -> _relation
-  | content_of_replica : el replica_content -> el replica -> _relation
-  | path_of_collection : el path -> el collection -> _relation
-  | id_of_collection : el id -> el collection -> _relation.
+  | _data_object_child_of_collection : el data_object -> el collection -> _relation
+  | _collection_child_of_collection : el collection -> el collection -> _relation
+  | _collection_root : el collection -> _relation
+  | _replica_of : el replica -> el data_object -> _relation
+  | _stored_at : el replica -> el resource -> _relation
+  | _resource_child_of_resource : el resource -> el resource -> _relation
+  | _resource_root : el resource -> _relation
+  | _resource_local_to_zone : el resource -> el zone -> _relation
+  | _replica_local_to_zone : el user -> el zone -> _relation
+  | _user_has_access_to_data_object : el user -> el access -> el data_object -> _relation
+  | _user_has_access_to_collection : el user -> el access -> el collection -> _relation
+  | _data_object_has_owner: el data_object -> el user -> _relation
+  | _path_of_data_object : el path -> el data_object -> _relation
+  | _id_of_data_object : el id -> el data_object -> _relation
+  | _owner_of_data_object : el user -> el data_object -> _relation
+  | _content_of_replica : el replica_content -> el replica -> _relation
+  | _path_of_collection : el path -> el collection -> _relation
+  | _id_of_collection : el id -> el collection -> _relation.
   
 Definition relation := _relation.
+Definition data_object_child_of_collection := _data_object_child_of_collection.
+Definition collection_child_of_collection := _collection_child_of_collection.
+Definition collection_root := _collection_root.
+Definition replica_of := _replica_of.
+Definition stored_at := _stored_at.
+Definition resource_child_of_resource := _resource_child_of_resource.
+Definition resource_root := _resource_root.
+Definition resource_local_to_zone := _resource_local_to_zone.
+Definition replica_local_to_zone := _replica_local_to_zone.
+Definition user_has_access_to_data_object := _user_has_access_to_data_object.
+Definition user_has_access_to_collection := _user_has_access_to_collection.
+Definition data_object_has_owner := _data_object_has_owner.
+Definition path_of_data_object := _path_of_data_object.
+Definition id_of_data_object := _id_of_data_object.
+Definition owner_of_data_object := _owner_of_data_object.
+Definition content_of_replica := _content_of_replica.
+Definition path_of_collection := _path_of_collection.
+Definition id_of_collection := _id_of_collection.
+  
+Parameter is_system : relation -> system_state -> Prop.
+Parameter is_observed : relation -> observed_state -> Prop.
+
+Hypothesis data_object_is_child_of_a_collection:
+forall (s : observed_state) (a : el data_object), 
+exists (b : el collection), is_observed (data_object_child_of_collection a b) s.
+
+Hypothesis data_object_has_at_least_one_replica:
+forall (s : observed_state) (a : el data_object), 
+exists (b : el replica), is_observed (replica_of b a) s.
+
+Hypothesis collection_is_child_of_a_collection_or_root:
+forall (s : observed_state) (a : el collection), 
+exists (b : el collection), is_observed (collection_child_of_collection a b) s \/ is_observed (collection_root a) s.
 
 (** *** Queries *)
 
 Inductive _query : Set -> Set :=
-  | path_to_data_object : el path -> _query (el data_object)
-  | path_to_collection : el path -> _query (el collection)
-  | connection_user : el connection -> _query (el user).
+  | _path_to_data_object : el path -> _query (el data_object)
+  | _path_to_collection : el path -> _query (el collection)
+  | _connection_user : el connection -> _query (el user).
   
 Definition query := _query.
+Definition path_to_data_object := _path_to_data_object.
+Definition path_to_collection := _path_to_collection.
+Definition connection_user := _connection_user.
 
 (** *** Auxiliary Functions *)
 
 Inductive _aux : Set -> Set :=
-  | parent_path : el path -> _aux (el path).
+  | _parent_path : el path -> _aux (el path).
   
 Definition aux := _aux.
+Definition parent_path := _parent_path.
 
 (** *** Actions *)
 
 Inductive _action : Set -> Type :=
-  | pure : forall {a : Set}, a -> _action a
-  | bind : forall {a b : Set}, (a -> _action b) -> _action a -> _action b
-  | plus : forall {a : Set}, _action a -> _action a -> _action a
-  | set : relation -> _action unit
-  | reset : relation -> _action unit
-  | new_id : _action (el id)
-  | new_data_object : _action (el data_object)
-  | new_replica : el resource -> el path -> _action (el replica)
-  | lift_query : forall {a : Set}, query a -> _action a
-  | lift_aux : forall {a : Set}, aux a -> _action a.
+  | _pure : forall {a : Set}, a -> _action a
+  | _bind : forall {a b : Set}, (a -> _action b) -> _action a -> _action b
+  | _zero : forall {a : Set}, _action a
+  | _plus : forall {a : Set}, _action a -> _action a -> _action a
+  | _set : relation -> _action unit
+  | _reset : relation -> _action unit
+  | _new_id : _action (el id)
+  | _new_data_object : _action (el data_object)
+  | _new_replica : el resource -> el path -> _action (el replica)
+  | _lift_query : forall {a : Set}, query a -> _action a
+  | _lift_aux : forall {a : Set}, aux a -> _action a.
   
 Definition action := _action.
+Definition pure : forall {a : Set}, a -> _action a := @_pure.
+Definition bind : forall {a b : Set}, (a -> _action b) -> _action a -> _action b := @_bind.
+Definition plus : forall {a : Set}, _action a -> _action a -> _action a := @_plus.
+Definition zero : forall {a : Set}, _action a := @_zero.
+Definition set := _set.
+Definition reset := _reset.
+Definition new_id := _new_id.
+Definition new_data_object := _new_data_object.
+Definition new_replica := _new_replica.
+Definition lift_query : forall {a : Set}, query a -> _action a := @_lift_query.
+Definition lift_aux : forall {a : Set}, aux a -> _action a := @_lift_aux.
+
+Definition applied_action a := system_state -> (a + el error) * system_state.
+
+Parameter apply_action : forall {a : Set}, action a -> applied_action a.
+
+Hypothesis query_does_not_change_system_state:
+forall (s : system_state) (a : Set) (qu : query a), snd (apply_action (lift_query qu) s) = s.
+
+Hypothesis aux_does_not_change_system_state:
+forall (s : system_state) (a : Set) (au : aux a), snd (apply_action (lift_aux au) s) = s.
+
+Hypothesis aux_does_not_depend_on_system_state:
+forall (s1 s2 : system_state) (a : Set) (qu : query a), fst (apply_action (lift_query qu) s1) = fst (apply_action (lift_query qu) s2).
 
 (** MonadPlus notations *)
 
@@ -629,6 +701,26 @@ data_object_create r p c =
 \end{tikzpicture}
 %
 *)
+
+Parameter data_object_copy : el data_object -> el path -> el connection -> action unit.
+Parameter data_object_chksum : el data_object -> el connection -> action (el chksum).
+Parameter data_object_rename : el data_object -> el path -> el connection -> action unit.
+Parameter data_object_phymv : el data_object -> el physical_path -> el connection -> action unit.
+Parameter data_object_lock : el data_object -> el connection -> action unit.
+Parameter data_object_unlock : el data_object -> el connection -> action unit.
+Parameter data_object_delete : el data_object -> el connection -> action unit.
+Parameter data_object_unlink : el data_object -> el path -> el connection -> action unit.
+Parameter data_object_open : el data_object -> el connection -> action (el data_object_descriptor).
+Parameter data_object_lseek : el data_object_descriptor -> el offset -> el connection -> action unit.
+Parameter data_object_close : el data_object_descriptor -> el connection -> action unit.
+Parameter data_object_read : el data_object_descriptor -> el offset -> el length -> el connection -> action (el buffer).
+Parameter data_object_write : el data_object_descriptor -> el offset -> el buffer -> el connection -> action unit.
+Parameter data_object_replicate : el user -> el data_object -> el resource -> el connection -> action unit.
+Parameter data_object_trim : el data_object -> el resource -> el connection -> action unit.
+Parameter data_object_truncate : el data_object -> el length -> el connection -> action unit.
+Parameter data_object_rsync : el data_object -> el data_object -> el connection -> action unit.
+Parameter data_object_get : action unit.
+Parameter data_object_put : action unit.
 
 End iRODS_model_impl.
 
